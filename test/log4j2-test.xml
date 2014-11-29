@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="JsonTestConfig">
+	<Properties>
+		<Property name="logName">./JsonTest.log</Property>
+		<Property name="logPattern">%d %-5p [%t] %20.30F:%-4L - %m%n</Property>
+	</Properties>
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${logPattern}"/>			
+		</Console>
+
+		<File name="JsonTestLogfile" fileName="${logName}" immediateFlush="false" append="false">
+			<PatternLayout pattern="${logPattern}"/>			
+		</File>
+
+	</Appenders>
+
+	<Loggers>
+		<Root level="TRACE">
+			<AppenderRef ref="Console" level="DEBUG"/>
+			<AppenderRef ref="JsonTestLogfile" level="DEBUG"/>
+		</Root>
+	</Loggers>
+</Configuration>
