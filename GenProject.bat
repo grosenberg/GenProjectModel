@@ -5,18 +5,18 @@ SETLOCAL
 set STARTTIME=%TIME%
 
 set wkspace=D:\DevFiles\Java\WorkSpaces\Main
-set projectName=GenProjectModel
+set projectName=JsonProject
 set packageName=net.certiv.json
 set grammarName=Json
-set genprjar=%wkspace%\%projectName%\lib\GenProject-2.0-complete.jar
-set antlrjar=%wkspace%\%projectName%\lib\antlr-4.4-complete.jar
+set genprjar=%wkspace%\GenProject\jars\GenProject-2.0-complete.jar
 set javahome=C:\Program Files\Java\jre7
 set javapgm="%javahome%\bin\java"
 
-set CLASSPATH=%genjar%;%antlrjar%;%CLASSPATH%
+rem Well-known location for the rule set
+set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json
 
 cd /d %wkspace%
-%javapgm%  net.certiv.antlr.project.gen.GenProject -c -g %grammarName% -n %packageName% -p %wkspace%\%projectName% -r %wkspace%\%projectName%
+%javapgm% -jar %genprjar% -c -g %grammarName% -n %packageName% -p %wkspace%\%projectName% -r %ruleSet% 
 
 set ENDTIME=%TIME%
 set /A STARTTIME=(1%STARTTIME:~6,2%-100)*100 + (1%STARTTIME:~9,2%-100)
