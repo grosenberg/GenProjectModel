@@ -19,7 +19,7 @@
  * // Version ==========
  *******************************************************************************/
 // FileGenPhase ==========
-package net.certiv.json.generator;
+package net.certiv.json.converter;
 
 public class JsonFileGen {
 

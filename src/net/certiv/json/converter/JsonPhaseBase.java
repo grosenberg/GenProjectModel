@@ -23,7 +23,7 @@ package net.certiv.json.converter;
 
 import java.util.List;
 
-import net.certiv.json.generator.IOProcessor;
+import net.certiv.json.IOProcessor;
 import net.certiv.json.parser.gen.JsonLexer;
 import net.certiv.json.parser.gen.JsonParserBaseListener;
 

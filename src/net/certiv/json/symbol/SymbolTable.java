@@ -24,7 +24,6 @@ package net.certiv.json.symbol;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import net.certiv.json.types.ScopeType;
 import net.certiv.json.util.Log;
 
 public class SymbolTable {

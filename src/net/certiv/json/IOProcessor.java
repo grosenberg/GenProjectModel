@@ -19,7 +19,7 @@
  * // Version ==========
  *******************************************************************************/
 // IOProcessor ==========
-package net.certiv.json.generator;
+package net.certiv.json;
 
 import java.io.File;
 import java.io.IOException;

@@ -25,8 +25,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Reflect {
+
+	public static final Class<?>[] emptyParams = new Class[] {};
+	public static final Object[] emptyArgs = new Object[] {};
 
 	private Reflect() {}
 
@@ -72,7 +79,22 @@ public class Reflect {
 		return null;
 	}
 
-	public static Object invoke(Object target, String methodName, Class<?>[] params, Object[] args) {
+	public static Object invoke(boolean quiet, Object target, String methodName) {
+		return invoke(quiet, target, methodName, emptyParams, emptyArgs);
+	}
+
+	public static Object invoke(boolean quiet, Object target, String methodName, Object... args) {
+		if (args == null) {
+			return invoke(quiet, target, methodName, emptyParams, emptyArgs);
+		}
+		Class<?>[] params = new Class[args.length];
+		for (int idx = 0; idx < args.length; idx++) {
+			params[idx] = args[idx].getClass();
+		}
+		return invoke(quiet, target, methodName, params, args);
+	}
+
+	public static Object invoke(boolean quiet, Object target, String methodName, Class<?>[] params, Object[] args) {
 
 		try {
 			Method m = target.getClass().getMethod(methodName, params);
@@ -80,7 +102,7 @@ public class Reflect {
 			return m.invoke(target, args);
 		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException
 				| IllegalAccessException | InvocationTargetException e) {
-			e.printStackTrace();
+			if (!quiet) e.printStackTrace();
 		}
 		return null;
 	}
@@ -96,6 +118,14 @@ public class Reflect {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static Map<String, Class<?>> declaredClasses(Object target) {
+		Map<String, Class<?>> classNames = new HashMap<>();
+		for (Class<?> c : target.getClass().getDeclaredClasses()) {
+			classNames.put(c.getSimpleName(), c);
+		}
+		return classNames;
 	}
 
 	public static Object make(Class<?> clazz, Object[] args) {
@@ -121,5 +151,29 @@ public class Reflect {
 		return "<unknown>";
 	}
 
+	public static <T> T instantiate(final String className, final Class<T> type) {
+		try {
+			return type.cast(Class.forName(className).newInstance());
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static List<String> getMethodNames(Object target, String prefix) {
+		List<String> results = new ArrayList<>();
+		try {
+			Method[] methods = target.getClass().getMethods();
+			for (int idx = 0; idx < methods.length; idx++) {
+				Method method = methods[idx];
+				if (method.getName().startsWith(prefix)) {
+					results.add(method.getName());
+				}
+			}
+		} catch (SecurityException | IllegalArgumentException e) {
+			e.printStackTrace();
+		}
+		return results;
+	}
 }
 // ReflectClass ==========

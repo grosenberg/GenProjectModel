@@ -19,7 +19,7 @@
  * // Version ==========
  *******************************************************************************/
 // ScopeTypeClass ==========
-package net.certiv.json.types;
+package net.certiv.json.symbol;
 
 public enum ScopeType {
 	GLOBAL,

@@ -24,7 +24,7 @@ package net.certiv.json.converter;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import net.certiv.json.generator.IOProcessor;
+import net.certiv.json.IOProcessor;
 import net.certiv.json.parser.JsonErrorListener;
 import net.certiv.json.parser.JsonTokenFactory;
 import net.certiv.json.parser.gen.JsonLexer;

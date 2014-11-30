@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import net.certiv.json.types.ScopeType;
 import net.certiv.json.util.Strings;
 
 public class Scope {

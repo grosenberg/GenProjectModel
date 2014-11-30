@@ -37,12 +37,16 @@ public class Strings {
 
 	/** Platform dependent end-of-line marker */
 	public static final String eol = System.lineSeparator();
-	/** Platform dependent path separator mark */
+	/** Platform dependent path separator mark as char */
 	public static final char pathSep = File.separatorChar;
+	/** Platform dependent path separator mark as string */
+	public static final String pathSepStr = File.separator;
+	/** Platform dependent path separator mark */
+	public static final String pkgSep = ".";
 	/** classpath (and unix) separator) */
 	public static final String STD_SEPARATOR = "/";
-	/** Windows separator character for classpath use. */
-	public static final String WINDOWS_SEPARATOR = "\\";
+	// Windows separator character.
+	private static final String WINDOWS_SEPARATOR = "\\\\";
 
 	public static final String SP = " ";
 	public static final String RN = "\r\n";
@@ -85,6 +89,18 @@ public class Strings {
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Convert a list of strings to a standard csv representation
+	 */
+	public static String toCsv(List<String> strs) {
+		StringBuilder sb = new StringBuilder();
+		for (String s : strs) {
+			sb.append(s + ", ");
+		}
+		if (sb.length() > 1) sb.setLength(sb.length() - 2);
+		return sb.toString();
 	}
 
 	public static String csvValueList(List<Value> valueList) {
@@ -146,14 +162,17 @@ public class Strings {
 	}
 
 	/**
-	 * Convert separators so the string is a valid URL appropriate for classpath discovery
+	 * Concats the arguments to produce a valid string URL appropriate for classpath discovery.
+	 * Separators are added as needed. All separators are converted to standard separators, ie,
+	 * *nix-style.
 	 */
 	public static String concatAsClassPath(String... args) {
 		return concat(args).replaceAll(WINDOWS_SEPARATOR, STD_SEPARATOR);
 	}
 
 	/**
-	 * Generalized concatenation of path strings
+	 * Concats the arguments to produce a filesystem path fragment. Separators are added as needed.
+	 * All separators are converted to standard separators, ie, *nix-style.
 	 */
 	public static String concat(String... args) {
 		String result = "";
@@ -163,28 +182,77 @@ public class Strings {
 		return result;
 	}
 
-	public static String ext(String pathname) {
-		File fname = new File(pathname);
-		String name = fname.getName();
+	/**
+	 * Converts a standard java package-styled string to a corresponding filesystem path fragment.
+	 * */
+	public static String convertPkgToPath(String arg) {
+		return arg.replace(pkgSep, STD_SEPARATOR);
+	}
+
+	/**
+	 * Removes any existing extension appended to the name, and then appends the given extension.
+	 * Checks to ensure that a dot separator is present between the name and extension.
+	 */
+	public static String setExtension(String name, String ext) {
 		int dot = name.lastIndexOf('.');
-		if (dot == -1 || dot == name.length() - 1) return "";
-		return name.substring(dot + 1);
+		if (dot != -1) {
+			name = name.substring(0, dot);
+		}
+		if (!ext.startsWith(".")) {
+			ext = "." + ext;
+		}
+		return name + ext;
 	}
 
-	public static String trimLeft(String s) {
-		int idx = 0;
-		while (idx < s.length() && Character.isWhitespace(s.charAt(idx))) {
-			idx++;
-		}
-		return s.substring(idx);
+	public static String initialLC(String str) {
+		if (str == null) return "";
+		if (str.length() < 2) return str.toLowerCase();
+		return str.substring(0, 1).toLowerCase() + str.substring(1);
 	}
 
-	public static String trimRight(String s) {
-		int idx = s.length() - 1;
-		while (idx >= 0 && Character.isWhitespace(s.charAt(idx))) {
-			idx--;
+	public static String initialUC(String str) {
+		if (str == null) return "";
+		if (str.length() < 2) return str.toUpperCase();
+		return str.substring(0, 1).toUpperCase() + str.substring(1);
+	}
+
+	public static String trimLeft(String str) {
+		return str.replaceAll("^\\s+", "");
+	}
+
+	public static String trimRight(String str) {
+		return str.replaceAll("\\s+$", "");
+	}
+
+	public static String camelCase(String in) {
+		StringBuilder sb = new StringBuilder(in);
+		for (int idx = sb.length() - 1; idx >= 0; idx--) {
+			char c = sb.charAt(idx);
+			if (c == '_') {
+				sb.deleteCharAt(idx);
+				sb.setCharAt(idx, Character.toUpperCase(sb.charAt(idx)));
+			} else if (Character.isUpperCase(c)) {
+				sb.setCharAt(idx, Character.toLowerCase(c));
+			}
 		}
-		return s.substring(0, idx + 1);
+		sb.setCharAt(0, Character.toLowerCase(sb.charAt(0)));
+		return sb.toString();
+	}
+
+	public static String tokenCase(String in) {
+		if (isAllUpperCase(in)) {
+			return Character.toString(in.charAt(0)) + in.substring(1).toLowerCase();
+		}
+		return in;
+	}
+
+	public static boolean isAllUpperCase(String in) {
+		for (int idx = 0; idx < in.length(); idx++) {
+			if (Character.isLowerCase(in.charAt(idx))) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static String titleCase(String word) {

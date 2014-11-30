@@ -23,8 +23,8 @@ package net.certiv.json.converter;
 
 import java.util.ArrayList;
 
+import net.certiv.json.IOProcessor;
 import net.certiv.json.converter.descriptors.JsonDescriptor;
-import net.certiv.json.generator.IOProcessor;
 import net.certiv.json.parser.gen.JsonParser.JsonContext;
 import net.certiv.json.util.Log;
 import net.certiv.json.util.Reflect;

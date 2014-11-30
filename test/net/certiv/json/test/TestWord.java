@@ -21,8 +21,8 @@
 // TestWordClass ==========
 package net.certiv.json.test;
 
+import net.certiv.json.IOProcessor;
 import net.certiv.json.converter.Converter;
-import net.certiv.json.generator.IOProcessor;
 import net.certiv.json.parser.JsonToken;
 import net.certiv.json.test.base.TestBase;
 

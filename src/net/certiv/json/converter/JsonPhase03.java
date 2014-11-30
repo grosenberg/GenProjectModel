@@ -21,8 +21,8 @@
 // Phase03Class ==========
 package net.certiv.json.converter;
 
-import net.certiv.json.generator.IOProcessor;
-import net.certiv.json.types.ScopeType;
+import net.certiv.json.IOProcessor;
+import net.certiv.json.symbol.ScopeType;
 import net.certiv.json.util.Log;
 import net.certiv.json.util.Reflect;
 

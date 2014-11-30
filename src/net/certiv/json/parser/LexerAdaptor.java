@@ -21,48 +21,82 @@
 // LexerAdaptorClass ==========
 package net.certiv.json.parser;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.Lexer;
 
 public abstract class LexerAdaptor extends Lexer {
-
-	public LexerHelper helper;
 
 	public LexerAdaptor(CharStream input) {
 		super(input);
 	}
 
-	public void setLexerHelper(LexerHelper helper) {
-		this.helper = helper;
-		helper.setLexer(this);
-	}
+	public boolean norLA(String... terminals) {
+		ANTLRInputStream input = (ANTLRInputStream) getInputStream();
 
-	public boolean anyLA(String... terminals) {
-		if (helper != null) {
-			return helper.anyLA(terminals);
+		for (String str : terminals) {
+			int index = 0;
+			for (int idx = 0; idx < str.length(); idx++) {
+				if (input.LA(index + 1) == IntStream.EOF) {
+					break;
+				}
+				char s = str.charAt(idx);
+				char la = (char) input.LA(index + 1);
+				if (s != la) {
+					break;
+				}
+				index++;
+			}
+			if (index == str.length()) {
+				return false;
+			}
 		}
-		return false;
+		return true;
 	}
 
 	public boolean anyLB(String... terminals) {
-		if (helper != null) {
-			return helper.anyLB(terminals);
-		}
-		return false;
-	}
-
-	public boolean norLA(String... terminals) {
-		if (helper != null) {
-			return helper.norLA(terminals);
-		}
-		return false;
+		return !norLB(terminals);
 	}
 
 	public boolean norLB(String... terminals) {
-		if (helper != null) {
-			return helper.norLB(terminals);
+		ANTLRInputStream input = (ANTLRInputStream) getInputStream();
+
+		for (String str : terminals) {
+			int index = 0;
+			for (int idx = str.length() - 1; idx >= 0; idx--) {
+				if (input.index() < str.length() - 1) {
+					break;
+				}
+				char s = str.charAt(idx);
+				char lb = (char) input.LA(index - 1);
+				if (s != lb) {
+					break;
+				}
+				index--;
+			}
+			if (index * -1 == str.length()) {
+				return false;
+			}
 		}
-		return false;
+		return true;
+	}
+
+	public int skipToEol(ANTLRInputStream input, int index) {
+		while (input.LA(index) != IntStream.EOF && input.LA(index) != '\n') {
+			index++;
+		}
+		return index;
+	}
+
+	public int skipToEoc(ANTLRInputStream input, int index) {
+		while (input.LA(index) != IntStream.EOF) {
+			if (input.LA(index) == '/' && input.LA(index - 1) == '*') {
+				return index;
+			}
+			index++;
+		}
+		return index;
 	}
 }
 

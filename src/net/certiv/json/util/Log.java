@@ -87,9 +87,9 @@ public class Log extends ExtendedLoggerWrapper {
 
 		logLevels.put(id, level);
 		if (id == LogId) {
-			info(Log.class, "Default logging level set [level=" + level.toString() + "]");
+			debug(Log.class, "Default logging level set [level=" + level.toString() + "]");
 		} else {
-			info(Log.class, "Class Logging level set [class=" + name + ", level=" + level.toString() + "]");
+			debug(Log.class, "Class Logging level set [class=" + name + ", level=" + level.toString() + "]");
 		}
 	}
 
@@ -165,6 +165,10 @@ public class Log extends ExtendedLoggerWrapper {
 
 	public static void fatal(Object source, String message, Throwable e) {
 		log(source, LogLevel.Fatal, message, e);
+	}
+
+	public static void log(Object source, LogLevel lvl, String message) {
+		log(source, lvl, message, null);
 	}
 
 	private static void log(Object source, LogLevel srcLevel, String message, Throwable e) {
