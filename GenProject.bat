@@ -5,18 +5,22 @@ SETLOCAL
 set STARTTIME=%TIME%
 
 set wkspace=D:\DevFiles\Java\WorkSpaces\Main
-set projectName=JsonProject
-set packageName=net.certiv.json
-set grammarName=Json
-set genprjar=%wkspace%\GenProject\jars\GenProject-2.0-complete.jar
+set projectName=TomlTest
+set packageName=net.certiv.toml
+set grammarName=Toml
+
+rem well-known locations
+set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json
+set projConfigFile=%workspace%\%projectName%\%grammarName%GenConfig.json
+set genprjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\jars\GenProject-2.0-complete.jar
+set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.4-complete.jar
 set javahome=C:\Program Files\Java\jre7
 set javapgm="%javahome%\bin\java"
 
-rem Well-known location for the rule set
-set ruleSet=%wkspace%\GenProject\GenProjectRuleSet.json
+set CLASSPATH=%genprjar%;%antlrjar%;%CLASSPATH%
 
 cd /d %wkspace%
-%javapgm% -jar %genprjar% -c -g %grammarName% -n %packageName% -p %wkspace%\%projectName% -r %ruleSet% 
+%javapgm% net.certiv.antlr.project.gen.GenProject -c -g %grammarName% -n %packageName% -p %wkspace%\%projectName% -r %ruleSet% %projConfigFile% 
 
 set ENDTIME=%TIME%
 set /A STARTTIME=(1%STARTTIME:~6,2%-100)*100 + (1%STARTTIME:~9,2%-100)
