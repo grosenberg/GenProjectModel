@@ -39,7 +39,6 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 public class Converter {
 
 	private IOProcessor processor;
-	private PhaseState state;
 	private String lastError = "<none>";
 
 	public Converter(IOProcessor processor) {
@@ -52,22 +51,21 @@ public class Converter {
 	}
 
 	public String convert(String srcData, PhaseState state) {
-		this.state = state;
 		try {
-			JsonContext tree = parse(srcData);
+			JsonContext tree = parse(srcData, state);
 			ParseTreeWalker walker = new ParseTreeWalker();
-			JsonPhase01 phase01 = processPhase01(tree, walker);
+			JsonPhase01 phase01 = processPhase01(tree, walker, state);
 			JsonPhase02 phase02 = processPhase02(tree, walker, phase01);
-			/* JsonPhase03 phase03 = */processPhase03(tree, walker, phase02);
+			JsonPhase03 phase03 = processPhase03(tree, walker, phase02);
 			Log.info(this, "Convertion complete.");
-			return state.doc.toString();
+			return phase03.state.toString();
 		} catch (IOException e) {
 			Log.error(this, lastError, e);
 			return "";
 		}
 	}
 
-	private JsonContext parse(String srcData) throws IOException {
+	private JsonContext parse(String srcData, PhaseState state) throws IOException {
 		lastError = "Failure in acquiring input stream.";
 		ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
 		ANTLRInputStream input = new ANTLRInputStream(is);
@@ -89,7 +87,7 @@ public class Converter {
 
 	}
 
-	private JsonPhase01 processPhase01(JsonContext tree, ParseTreeWalker walker) {
+	private JsonPhase01 processPhase01(JsonContext tree, ParseTreeWalker walker, PhaseState state) {
 		lastError = "Failure in parse phase 1.";
 		JsonPhase01 phase01 = new JsonPhase01(state, processor);
 		phase01.collectComments(true);
