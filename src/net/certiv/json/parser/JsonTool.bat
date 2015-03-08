@@ -6,7 +6,7 @@ set STARTTIME=%TIME%
 
 set wkspace=D:\DevFiles\Java\WorkSpaces\Main
 set projectName=GenProjectModel
-set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.4-complete.jar
+set antlrjar=D:\DevFiles\Java\WorkSpaces\Main\GenProject\lib\antlr-4.5-complete.jar
 set javahome=C:\Program Files\Java\jre7
 set javapgm="%javahome%\bin\java"
 

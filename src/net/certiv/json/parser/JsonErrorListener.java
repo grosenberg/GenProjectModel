@@ -24,6 +24,7 @@ package net.certiv.json.parser;
 import java.util.Collections;
 import java.util.List;
 
+import net.certiv.json.parser.gen.JsonLexer;
 import net.certiv.json.util.Log;
 
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -42,29 +43,31 @@ public class JsonErrorListener extends BaseErrorListener {
 			String msg, RecognitionException e) {
 
 		Parser parser = (Parser) recognizer;
+		String name = parser.getSourceName();
 		TokenStream tokens = parser.getInputStream();
 
 		Token offSymbol = (Token) offendingSymbol;
 		int thisError = offSymbol.getTokenIndex();
 		if (offSymbol.getType() == -1 && thisError == tokens.size() - 1) {
-			Log.debug(this, "Incorrect error: " + msg);
+			Log.debug(this, name + ": Incorrect error: " + msg);
 			return;
 		}
-		if (thisError > lastError + 20) {
-			lastError = thisError - 20;
+		String offSymName = JsonLexer.VOCABULARY.getSymbolicName(offSymbol.getType());
+		if (thisError > lastError + 10) {
+			lastError = thisError - 10;
 		}
 		for (int idx = lastError + 1; idx <= thisError; idx++) {
 			Token token = tokens.get(idx);
 			if (token.getChannel() != Token.HIDDEN_CHANNEL)
-				Log.error(this, token.toString());
+				Log.error(this, name + ":" + token.toString());
 		}
 		lastError = thisError;
 
 		List<String> stack = parser.getRuleInvocationStack();
 		Collections.reverse(stack);
 
-		Log.error(this, "rule stack: " + stack);
-		Log.error(this, "line " + line + ":" + charPositionInLine + " at " + offendingSymbol + ": " + msg);
+		Log.error(this, name + " rule stack: " + stack);
+		Log.error(this, name + " line " + line + ":" + charPositionInLine + " at " + offSymName + ": " + msg);
 	}
 }
 // ErrorListenerClass ==========

@@ -42,7 +42,7 @@ public class IOProcessor {
 	private boolean StdIO;
 	private boolean TextIn;
 
-	private String srcData; // loaded mtl source data
+	private String srcData; // loaded source data
 
 	public IOProcessor(String[] args) {
 		if (args.length == 0) {
@@ -94,6 +94,10 @@ public class IOProcessor {
 		}
 
 		return true;
+	}
+
+	public String getSourceName() {
+		return source;
 	}
 
 	public String loadData() {

@@ -24,7 +24,6 @@ package net.certiv.json.parser;
 import java.util.Formatter;
 
 import net.certiv.json.parser.gen.JsonLexer;
-import net.certiv.json.parser.gen.JsonParser;
 import net.certiv.json.util.Strings;
 
 import org.antlr.v4.runtime.CharStream;
@@ -104,8 +103,7 @@ public class JsonToken extends CommonToken {
 			txt = "<no text>";
 		}
 
-		String tokenName = "Eof";
-		if (type > -1) tokenName = JsonParser.tokenNames[type];
+		String tokenName = JsonLexer.VOCABULARY.getSymbolicName(type);
 
 		String s = hasStyles ? "S" : "_";
 		String b = hasBody ? "B" : "_";

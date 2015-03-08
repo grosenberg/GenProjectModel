@@ -69,6 +69,7 @@ public class Converter {
 		lastError = "Failure in acquiring input stream.";
 		ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
 		ANTLRInputStream input = new ANTLRInputStream(is);
+		input.name = processor.getSourceName();
 
 		lastError = "Failure in generating lexer token stream.";
 		JsonLexer lexer = new JsonLexer(input);

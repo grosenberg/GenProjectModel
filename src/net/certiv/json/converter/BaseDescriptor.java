@@ -80,7 +80,7 @@ public abstract class BaseDescriptor implements IDescriptor {
 
 	@Override
 	public Value processOnEntry() {
-		return process();
+		return value;
 	}
 
 	@Override
