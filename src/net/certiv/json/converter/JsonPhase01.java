@@ -86,8 +86,8 @@ public class JsonPhase01 extends JsonPhaseBase {
 
 		if (collectComments) {
 			descriptor.collectComments = collectComments;
-			descriptor.commentLeft = commentLeft(ctx);
-			descriptor.commentRight = commentRight(ctx);
+			descriptor.setLeftComment(commentLeft(ctx));
+			descriptor.setRightComment(commentRight(ctx));
 		}
 
 		Log.info(this, "Phase " + phase + ": Created " + className);

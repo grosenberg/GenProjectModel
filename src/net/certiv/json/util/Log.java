@@ -28,21 +28,30 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.AbstractConfiguration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.MessageFactory;
 import org.apache.logging.log4j.spi.ExtendedLogger;
 import org.apache.logging.log4j.spi.ExtendedLoggerWrapper;
-import org.apache.logging.log4j.spi.LoggerContext;
 
 public class Log extends ExtendedLoggerWrapper {
 
 	private static final long serialVersionUID = 1L;
+	private static final String CONSOLE = "Console";
+	private static final String OUTPUT = "SYSTEM_OUT";
 
 	private static Logger logger;
 	private static final String FQCN = Log.class.getName();
 
 	private static HashMap<Integer, LogLevel> logLevels = new HashMap<>();
 	private static int LogId = Log.class.hashCode();
+	private static boolean minOut;
+	private static AbstractAppender stdAppender;
+	private static ConsoleAppender testAppender;
 
 	// set the global default log value
 	static {
@@ -59,9 +68,8 @@ public class Log extends ExtendedLoggerWrapper {
 	}
 
 	/**
-	 * Sets a log level as a default for a class type. In the absence of a class specific level, the
-	 * global default is applied. For a log message to be printed, the log level must be GTE the log
-	 * level set for the source class.
+	 * Sets a log level as a default for a class type. In the absence of a class specific level, the global default is
+	 * applied. For a log message to be printed, the log level must be GTE the log level set for the source class.
 	 */
 	public static void defLevel(LogLevel level) {
 		setLevel(null, level);
@@ -91,6 +99,29 @@ public class Log extends ExtendedLoggerWrapper {
 		} else {
 			debug(Log.class, "Class Logging level set [class=" + name + ", level=" + level.toString() + "]");
 		}
+	}
+
+	public static void setTestMode(boolean testMode) {
+		minOut = testMode;
+
+		LoggerContext ctx = (LoggerContext) LogManager.getContext();
+		AbstractConfiguration cfg = (AbstractConfiguration) ctx.getConfiguration();
+		if (stdAppender == null) {
+			stdAppender = (AbstractAppender) cfg.getAppender(CONSOLE);
+		}
+		if (testAppender == null) {
+			PatternLayout testLayout = PatternLayout.createDefaultLayout();
+			testAppender = ConsoleAppender.createAppender(testLayout, null, OUTPUT, CONSOLE, "false", "true");
+		}
+
+		if (minOut) {
+			cfg.removeAppender(CONSOLE);
+			cfg.addAppender(testAppender);
+		} else {
+			cfg.removeAppender(CONSOLE);
+			cfg.addAppender(stdAppender);
+		}
+		ctx.updateLoggers();
 	}
 
 	private static LogLevel logLevelOf(Object source) {
@@ -226,7 +257,7 @@ public class Log extends ExtendedLoggerWrapper {
 	private static class PrivateManager extends LogManager {
 
 		public static LoggerContext getContext() {
-			return getContext(FQCN, false);
+			return (LoggerContext) getContext(FQCN, false);
 		}
 
 		public static ExtendedLogger getLogger(final String name) {

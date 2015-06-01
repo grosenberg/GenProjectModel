@@ -22,9 +22,13 @@
 package net.certiv.json.converter.descriptors;
 
 import java.util.List;
+
 import org.antlr.v4.runtime.tree.TerminalNode;
+
 import net.certiv.json.converter.BaseDescriptor;
 import net.certiv.json.converter.Value;
+import net.certiv.json.parser.gen.JsonParser.ArrayContext;
+import net.certiv.json.parser.gen.JsonParser.ValueContext;
 
 // DescriptorClass ==========
 
@@ -32,15 +36,46 @@ import net.certiv.json.converter.Value;
 // Generated imports 
 // ImportNamedContexts ==========
 
-import net.certiv.json.parser.gen.JsonParser.ArrayContext;
-import net.certiv.json.parser.gen.JsonParser.ValueContext;
-
 // DescriptorBody ==========
 
 public class ArrayDescriptor extends BaseDescriptor {
 
+	public String commentLeft = "";
+	public String commentRight = "";
+
 	public ArrayDescriptor(ArrayContext ctx) {
 		super(ctx);
+	}
+
+	@Override
+	public String content(boolean enter) {
+		StringBuilder sb = new StringBuilder();
+		if (enter) {
+			sb.append(commentLeft);
+		} else {
+			sb.append(commentRight);
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public void setLeftComment(String comment) {
+		this.commentLeft = comment;
+	}
+
+	@Override
+	public void setRightComment(String comment) {
+		this.commentRight = comment;
+	}
+
+	@Override
+	public String getLeftComment() {
+		return commentLeft;
+	}
+
+	@Override
+	public String getRightComment() {
+		return commentRight;
 	}
 
 	@Override

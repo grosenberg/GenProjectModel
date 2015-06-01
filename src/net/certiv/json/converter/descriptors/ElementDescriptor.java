@@ -29,8 +29,42 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class ElementDescriptor extends BaseDescriptor {
 
+	public String commentLeft = "";
+	public String commentRight = "";
+
 	public ElementDescriptor(ElementContext ctx) {
 		super(ctx);
+	}
+
+	@Override
+	public String content(boolean enter) {
+		StringBuilder sb = new StringBuilder();
+		if (enter) {
+			sb.append(commentLeft);
+		} else {
+			sb.append(commentRight);
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public void setLeftComment(String comment) {
+		this.commentLeft = comment;
+	}
+
+	@Override
+	public void setRightComment(String comment) {
+		this.commentRight = comment;
+	}
+
+	@Override
+	public String getLeftComment() {
+		return commentLeft;
+	}
+
+	@Override
+	public String getRightComment() {
+		return commentRight;
 	}
 
 	@Override

@@ -56,8 +56,6 @@ public abstract class BaseDescriptor implements IDescriptor {
 
 	// Helpers are in PhaseBase
 	public boolean collectComments = false;
-	public String commentLeft;
-	public String commentRight;
 
 	// BaseDescriptor Helpers /////////////////////
 
@@ -73,6 +71,8 @@ public abstract class BaseDescriptor implements IDescriptor {
 		return state.nodeContextMap.get(ctx);
 	}
 
+	public abstract String content(boolean enter);
+
 	@Override
 	public void initialize() {
 		value = Value.TRUE;
@@ -80,7 +80,7 @@ public abstract class BaseDescriptor implements IDescriptor {
 
 	@Override
 	public Value processOnEntry() {
-		return value;
+		return process();
 	}
 
 	@Override
@@ -106,11 +106,19 @@ public abstract class BaseDescriptor implements IDescriptor {
 	public String toString() {
 		String strValue = value.toString() != null ? value.toString() : "<Null Value>";
 		if (collectComments) {
-			return commentLeft + strValue + Strings.SP + commentRight;
+			return getLeftComment() + strValue + Strings.SP + getRightComment();
 		} else {
 			return strValue;
 		}
 	}
+
+	public abstract void setLeftComment(String comment);
+
+	public abstract void setRightComment(String comment);
+
+	public abstract String getLeftComment();
+
+	public abstract String getRightComment();
 
 	// Symbol Table Helpers ///////////////////////////
 
