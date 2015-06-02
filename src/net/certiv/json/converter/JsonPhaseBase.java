@@ -56,72 +56,85 @@ public class JsonPhaseBase extends JsonParserBaseListener {
 		return rc.getChild(idx).getText();
 	}
 
+	/**
+	 * Search left for comments. Stop on first non-comment, previously indexed comment, or BOF. The index of the first
+	 * new comment token is recorded.
+	 */
 	public String commentLeft(ParserRuleContext rc) {
-		int tdx = rc.getStart().getTokenIndex();
-		if (tdx <= 0) return "";
-		int jdx = tdx - 1;
+		int dot = rc.getStart().getTokenIndex();
+		if (dot <= 0) return "";
+		int idx = dot;
+		int prev = dot - 1;
 		boolean onlyWS = true;
 		boolean done = false;
 		while (!done) {
-			switch (this.state.tokens.get(jdx).getType()) {
+			switch (this.state.tokens.get(prev).getType()) {
 				case JsonLexer.Comment:
 				case JsonLexer.CommentLine:
+					if (this.state.commentMarkers.contains(prev)) {
+						done = true;
+						break;
+					}
 					onlyWS = false;
+					idx = prev;
+					this.state.commentMarkers.add(idx);
 				case JsonLexer.HorzWS:
 				case JsonLexer.VertWS:
-					if (jdx > 0) {
-						jdx--;
-					} else {
-						done = true;
+					if (prev > 0) {
+						prev--;
+						break;
 					}
-					break;
 				default:
 					done = true;
 			}
 		}
 		if (onlyWS) return "";
-		if (this.state.commentMarkers.contains(jdx)) {
-			return "";
-		} else {
-			this.state.commentMarkers.add(jdx);
-		}
 
 		StringBuilder sb = new StringBuilder();
-		for (; jdx < tdx; jdx++) {
-			sb.append(this.state.tokens.get(jdx).getText());
+		for (; idx < dot; idx++) {
+			sb.append(this.state.tokens.get(idx).getText());
 		}
 		return sb.toString();
 	}
 
+	/**
+	 * Search right for comments. Stop on first VWS or non-Comment token or EOF. The index of the first comment token is
+	 * recorded.
+	 */
 	public String commentRight(ParserRuleContext rc) {
-		int tdx = rc.getStop().getTokenIndex();
-		int jdx = tdx + 1;
+		int dot = rc.getStop().getTokenIndex();
+		int idx = dot;
+		int mark = dot;
+		int next = dot + 1;
 		boolean onlyWS = true;
 		boolean done = false;
 		while (!done) {
-			switch (this.state.tokens.get(jdx).getType()) {
+			switch (this.state.tokens.get(next).getType()) {
+				case JsonLexer.Comment:
 				case JsonLexer.CommentLine:
+					if (this.state.commentMarkers.contains(next)) {
+						done = true;
+						break;
+					}
 					onlyWS = false;
+					if (idx == dot) idx = next;
+					mark = next;
+					this.state.commentMarkers.add(idx);
 				case JsonLexer.HorzWS:
-					jdx++;
+					next++;
 					break;
+				case JsonLexer.VertWS:
+					mark = next;
 				case JsonLexer.EOF:
-					done = true;
-					break;
 				default:
 					done = true;
 			}
 		}
 		if (onlyWS) return "";
-		if (this.state.commentMarkers.contains(jdx)) {
-			return "";
-		} else {
-			this.state.commentMarkers.add(jdx);
-		}
 
 		StringBuilder sb = new StringBuilder();
-		for (tdx++; tdx <= jdx; tdx++) {
-			sb.append(this.state.tokens.get(tdx).getText());
+		for (dot++; dot <= mark; dot++) {
+			sb.append(this.state.tokens.get(dot).getText());
 		}
 		return sb.toString();
 	}

@@ -32,9 +32,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class JsonDescriptor extends BaseDescriptor {
 
-	public String commentLeft = "";
-	public String commentRight = "";
-
 	public JsonDescriptor(JsonContext ctx) {
 		super(ctx);
 	}
@@ -43,31 +40,11 @@ public class JsonDescriptor extends BaseDescriptor {
 	public String content(boolean enter) {
 		StringBuilder sb = new StringBuilder();
 		if (enter) {
-			sb.append(commentLeft);
+			sb.append(getLeftComment());
 		} else {
-			sb.append(commentRight);
+			sb.append(getRightComment());
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public void setLeftComment(String comment) {
-		this.commentLeft = comment;
-	}
-
-	@Override
-	public void setRightComment(String comment) {
-		this.commentRight = comment;
-	}
-
-	@Override
-	public String getLeftComment() {
-		return commentLeft;
-	}
-
-	@Override
-	public String getRightComment() {
-		return commentRight;
 	}
 
 	@Override

@@ -55,7 +55,9 @@ public abstract class BaseDescriptor implements IDescriptor {
 	// Comment Collection ///////////////////////////
 
 	// Helpers are in PhaseBase
-	public boolean collectComments = false;
+	private boolean collectComments = false;
+	private String commentLeft = "";
+	private String commentRight = "";
 
 	// BaseDescriptor Helpers /////////////////////
 
@@ -112,13 +114,35 @@ public abstract class BaseDescriptor implements IDescriptor {
 		}
 	}
 
-	public abstract void setLeftComment(String comment);
+	@Override
+	public void setCollectComments(boolean collect) {
+		this.collectComments = collect;
+	}
 
-	public abstract void setRightComment(String comment);
+	@Override
+	public boolean getCollectComments() {
+		return this.collectComments;
+	}
 
-	public abstract String getLeftComment();
+	@Override
+	public void setLeftComment(String comment) {
+		this.commentLeft = comment;
+	}
 
-	public abstract String getRightComment();
+	@Override
+	public void setRightComment(String comment) {
+		this.commentRight = comment;
+	}
+
+	@Override
+	public String getLeftComment() {
+		return commentLeft;
+	}
+
+	@Override
+	public String getRightComment() {
+		return commentRight;
+	}
 
 	// Symbol Table Helpers ///////////////////////////
 
