@@ -119,9 +119,9 @@ public class IOProcessor {
 
 	// TODO: convert based on type
 	public String convertName(String pName) {
-		String name = pName.replaceFirst("Java/src", "Go/src");
+		String name = pName.replaceFirst("Java/src", "Json/src");
 		int dot = name.lastIndexOf("java");
-		name = name.substring(0, dot) + "go";
+		name = name.substring(0, dot) + "json";
 		return name;
 	}
 

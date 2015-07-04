@@ -91,7 +91,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		ElementDescriptor descriptor = (ElementDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	}
 
 	@Override
@@ -100,7 +100,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		JsonDescriptor descriptor = (JsonDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		ValueDescriptor descriptor = (ValueDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	}
 
 	@Override
@@ -118,7 +118,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		ObjectDescriptor descriptor = (ObjectDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	}
 
 	// Phase03MethodSet ==========
@@ -129,16 +129,16 @@ public class JsonPhase03 extends JsonPhaseBase {
 		state.symTable.pushScope();
 		Log.debug(this, "Phase " + phase + ": New local scope");
 		ArrayDescriptor descriptor = (ArrayDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnEntry();
 	}
 
 	@Override
 	public void exitArray(ArrayContext ctx) {
 		super.exitArray(ctx);
 		ArrayDescriptor descriptor = (ArrayDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
-	
+
 		String name = Reflect.simpleClassName(descriptor);
 		Log.debug(this, "Phase " + phase + ": " + name + " processed (resolved: " + descriptor.resolved + ")");
 	}
@@ -149,7 +149,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 	public void exitElement(ElementContext ctx) {
 		super.exitElement(ctx);
 		ElementDescriptor descriptor = (ElementDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
 
 		String name = Reflect.simpleClassName(descriptor);
@@ -160,7 +160,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 	public void exitJson(JsonContext ctx) {
 		super.exitJson(ctx);
 		JsonDescriptor descriptor = (JsonDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
 
 		String name = Reflect.simpleClassName(descriptor);
@@ -171,7 +171,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 	public void exitValue(ValueContext ctx) {
 		super.exitValue(ctx);
 		ValueDescriptor descriptor = (ValueDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
 
 		String name = Reflect.simpleClassName(descriptor);
@@ -182,7 +182,7 @@ public class JsonPhase03 extends JsonPhaseBase {
 	public void exitObject(ObjectContext ctx) {
 		super.exitObject(ctx);
 		ObjectDescriptor descriptor = (ObjectDescriptor) getDescriptor(ctx);
-		descriptor.process();
+		descriptor.processOnExit();
 		state.symTable.popScope();
 
 		String name = Reflect.simpleClassName(descriptor);
