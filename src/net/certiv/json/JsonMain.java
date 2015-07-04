@@ -25,13 +25,13 @@
 // JsonMainClass ==========
 package net.certiv.json;
 
+import java.io.File;
+
 import net.certiv.json.converter.Converter;
 import net.certiv.json.converter.PhaseState;
 import net.certiv.json.util.Log;
 
 public class JsonMain {
-
-	private IOProcessor processor;
 
 	public static void main(String[] args) {
 		new JsonMain(args);
@@ -40,28 +40,34 @@ public class JsonMain {
 	public JsonMain(String[] args) {
 
 		if (args == null || args.length == 0) {
-			String input = "D:/DevFiles/Java/WorkSpaces/Main/GenProjectModel/Sample.json";
-			args = new String[] { "-i", input };
+			String input = "D:/DevFiles/Java/WorkSpaces/Main/net.certiv.json/Json/src/samples";
+			args = new String[] { "-i", input, "-t", "java" };
 		}
 
-		processor = new IOProcessor(args);
+		Log.info(this, "Java2Go running...");
+		IOProcessor processor = new IOProcessor(args);
 		if (processor.init()) {
-			Log.info(this, "JsonMain running...");
+			File root = new File(processor.getSourceDir());
+			Converter converter = new Converter(processor);
 
-			String srcData = processor.loadData();
-			if (srcData.length() == 0) {
-				Log.error(this, "Startup failed.");
-				return;
+			for (File file : processor.collectSourceFiles(root)) {
+				String srcName = file.getPath();
+				srcName = srcName.replaceAll("\\\\", "/");
+				String srcData = processor.loadData(file);
+
+				if (srcData.length() == 0) {
+					Log.error(this, "Skipping " + srcName);
+					continue;
+				}
+
+				String outName = processor.convertName(srcName);
+				String result = converter.convert(srcName, srcData);
+				processor.storeData(outName, result);
 			}
-			Log.info(this, "Startup complete.");
-
-			Converter remarkConverter = new Converter(processor);
-			String result = remarkConverter.convert(srcData);
-			processor.storeData(result);
 
 			Log.info(this, "Done.");
 		} else {
-			Log.error(this, "JsonMain Failed.");
+			Log.error(this, "Failed.");
 		}
 	}
 
@@ -70,7 +76,7 @@ public class JsonMain {
 	 * <br>
 	 * Usage:<br>
 	 * JsonMain jm = new JsonMain();<br>
-	 * String resultData = jm.start(String srcData, SymbolTable symTable);
+	 * String resultData = jm.start(String srcName, String srcData, SymbolTable symTable);
 	 */
 	public JsonMain() {
 		super();
@@ -79,15 +85,16 @@ public class JsonMain {
 	/**
 	 * Start embedded run
 	 * 
+	 * @param srcName file name associated with srcData
 	 * @param srcData data to evaluate
 	 * @param state carry data between phases - inlcudes symbol table
 	 * @param iop the I/O processor
 	 * @return
 	 */
-	public String start(String srcData, PhaseState state, IOProcessor iop) {
+	public String start(String srcName, String srcData, PhaseState state, IOProcessor iop) {
 		Converter nominal = new Converter(iop);
 		PhaseState srcState = state.clone();
-		return nominal.convert(srcData, srcState);
+		return nominal.convert(srcName, srcData, srcState);
 	}
 }
 

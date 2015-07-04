@@ -21,32 +21,31 @@
 // TokenClass ==========
 package net.certiv.json.parser;
 
-import java.util.Formatter;
-
-import net.certiv.json.parser.gen.JsonLexer;
-import net.certiv.json.util.Strings;
-
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonToken;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.TokenSource;
 import org.antlr.v4.runtime.misc.Pair;
+
+import net.certiv.json.parser.gen.JsonLexer;
+import net.certiv.json.types.ToStringStyle;
 
 @SuppressWarnings("serial")
 public class JsonToken extends CommonToken {
 
-	public static final boolean FULL = true;
-	public static final boolean BASIC = false;
-
-	private boolean tss = FULL; // defines the toString style
+	private ToStringStyle tss = ToStringStyle.BASIC;
 
 	// Lexer mode
 	private int _mode;
-
 	private boolean hasStyles;
 	private boolean hasBody;
 
 	public JsonToken(int type, String text) {
 		super(type, text);
+	}
+
+	public JsonToken(Token prior) {
+		super(prior);
 	}
 
 	public JsonToken(Pair<TokenSource, CharStream> source, int type, int channel, int start, int stop) {
@@ -55,6 +54,14 @@ public class JsonToken extends CommonToken {
 
 	public void setMode(int mode) {
 		_mode = mode;
+	}
+
+	public void toStringStyle(ToStringStyle tss) {
+		this.tss = tss;
+	}
+
+	private boolean isFull() {
+		return tss == ToStringStyle.FULL;
 	}
 
 	public void styles(boolean hasStyles) {
@@ -78,18 +85,16 @@ public class JsonToken extends CommonToken {
 		return Character.isUpperCase(c);
 	}
 
-	public void toStringStyle(boolean full) {
-		this.tss = full;
-	}
-
 	@Override
 	public String toString() {
-		String chanStr = "chan=" + channel;
-		if (channel == 0) chanStr = tss ? "chan=Default" : "";
-		if (channel == 1) chanStr = tss ? "chan=Hidden" : "Hidden";
+		if (tss == ToStringStyle.MIN) return super.toString();
 
-		String modeStr = (tss ? "mode=" : "") + JsonLexer.modeNames[_mode];
-		if (_mode == 0) modeStr = tss ? "mode=Default" : "";
+		String chanStr = "chan=" + channel;
+		if (channel == 0) chanStr = isFull() ? "chan=Default" : "";
+		if (channel == 1) chanStr = isFull() ? "chan=Hidden" : "Hidden";
+
+		String modeStr = (isFull() ? "mode=" : "") + JsonLexer.modeNames[_mode];
+		if (_mode == 0) modeStr = isFull() ? "mode=Default" : "";
 
 		String mcStr = chanStr + " " + modeStr;
 		mcStr = mcStr.trim();
@@ -102,24 +107,11 @@ public class JsonToken extends CommonToken {
 		} else {
 			txt = "<no text>";
 		}
-
 		String tokenName = JsonLexer.VOCABULARY.getSymbolicName(type);
-
-		String s = hasStyles ? "S" : "_";
-		String b = hasBody ? "B" : "_";
-		String t = isTag() ? "T" : "_";
-
-		@SuppressWarnings("resource")
-		Formatter fmt = new Formatter();
-		if (tss) {
-			fmt.format("[@%-2d %2d:%-2d <%d-%d> (%d) %s %s %s='%s']",
-					getTokenIndex(), line, getCharPositionInLine(), start, stop,
-					type, s + b + t, mcStr, tokenName, txt);
-		} else {
-			fmt.format("[@%-2d %2d:%-2d %s='%s' %s]",
-					getTokenIndex(), line, getCharPositionInLine(), tokenName, txt, mcStr);
-		}
-		return fmt.toString() + Strings.eol;
+		return "[@" + getTokenIndex() + ", <" + start + ":" + stop + "> "
+				+ tokenName + "(" + type + ")='" + txt + "'"
+				+ ", " + chanStr + ", " + modeStr
+				+ ", " + line + ":" + getCharPositionInLine() + "]";
 	}
 }
 

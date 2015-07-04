@@ -36,19 +36,15 @@ public class ObjectDescriptor extends BaseDescriptor {
 	}
 
 	@Override
-	public String content(boolean enter) {
-		StringBuilder sb = new StringBuilder();
-		if (enter) {
-			sb.append(getLeftComment());
-		} else {
-			sb.append(getRightComment());
-		}
+	public String content() {
 		return sb.toString();
 	}
 
 	@Override
-	public void initialize() {
-		value = Value.TRUE;
+	public Value processOnEntry() {
+		sb = new StringBuilder();
+		sb.append(getLeftComment());
+		return value;
 	}
 
 	@Override
@@ -56,6 +52,12 @@ public class ObjectDescriptor extends BaseDescriptor {
 		if (!resolved) {
 			resolved = true;
 		}
+		return value;
+	}
+
+	@Override
+	public Value processOnExit() {
+		sb.append(getRightComment());
 		return value;
 	}
 

@@ -23,12 +23,12 @@ package net.certiv.json.converter;
 
 import java.util.List;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
+
 import net.certiv.json.IOProcessor;
 import net.certiv.json.parser.gen.JsonLexer;
 import net.certiv.json.parser.gen.JsonParserBaseListener;
-
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 public class JsonPhaseBase extends JsonParserBaseListener {
 
@@ -44,6 +44,10 @@ public class JsonPhaseBase extends JsonParserBaseListener {
 		this.processor = processor;
 	}
 
+	public PhaseState getState() {
+		return state;
+	}
+
 	public BaseDescriptor getDescriptor(ParseTree ctx) {
 		return this.state.nodeContextMap.get(ctx);
 	}
@@ -57,84 +61,71 @@ public class JsonPhaseBase extends JsonParserBaseListener {
 	}
 
 	/**
-	 * Search left for comments. Stop on first non-comment, previously indexed comment, or BOF. The index of the first
-	 * new comment token is recorded.
+	 * Search left for comments. Stop on first non-comment, previously indexed comment, or
+	 * BOF. The index of the first new comment token is recorded.
 	 */
 	public String commentLeft(ParserRuleContext rc) {
 		int dot = rc.getStart().getTokenIndex();
-		if (dot <= 0) return "";
-		int idx = dot;
-		int prev = dot - 1;
-		boolean onlyWS = true;
+		if (dot < 0) return "";
+		int mark = dot;
 		boolean done = false;
 		while (!done) {
-			switch (this.state.tokens.get(prev).getType()) {
+			switch (state.tokens.get(mark - 1).getType()) {
 				case JsonLexer.Comment:
 				case JsonLexer.CommentLine:
-					if (this.state.commentMarkers.contains(prev)) {
-						done = true;
-						break;
-					}
-					onlyWS = false;
-					idx = prev;
-					this.state.commentMarkers.add(idx);
 				case JsonLexer.HorzWS:
 				case JsonLexer.VertWS:
-					if (prev > 0) {
-						prev--;
-						break;
-					}
+					mark--;
+					if (mark <= 0) done = true;
+					break;
+
 				default:
 					done = true;
 			}
 		}
-		if (onlyWS) return "";
+
+		if (state.commentMarkers.contains(mark)) return "";
+		state.commentMarkers.add(mark);
 
 		StringBuilder sb = new StringBuilder();
-		for (; idx < dot; idx++) {
-			sb.append(this.state.tokens.get(idx).getText());
+		for (; mark < dot; mark++) {
+			sb.append(state.tokens.get(mark).getText());
 		}
 		return sb.toString();
 	}
 
 	/**
-	 * Search right for comments. Stop on first VWS or non-Comment token or EOF. The index of the first comment token is
-	 * recorded.
+	 * Search right for comments. Stop on first VWS or non-Comment token or EOF. The index
+	 * of the first comment token is recorded.
 	 */
 	public String commentRight(ParserRuleContext rc) {
 		int dot = rc.getStop().getTokenIndex();
-		int idx = dot;
+		int end = state.tokens.size() - 1;
+		if (dot > end) return "";
 		int mark = dot;
-		int next = dot + 1;
-		boolean onlyWS = true;
 		boolean done = false;
 		while (!done) {
-			switch (this.state.tokens.get(next).getType()) {
+			switch (state.tokens.get(mark + 1).getType()) {
 				case JsonLexer.Comment:
 				case JsonLexer.CommentLine:
-					if (this.state.commentMarkers.contains(next)) {
-						done = true;
-						break;
-					}
-					onlyWS = false;
-					if (idx == dot) idx = next;
-					mark = next;
-					this.state.commentMarkers.add(idx);
 				case JsonLexer.HorzWS:
-					next++;
-					break;
 				case JsonLexer.VertWS:
-					mark = next;
-				case JsonLexer.EOF:
+					mark++;
+					if (mark >= end) done = true;
+					break;
+
 				default:
 					done = true;
 			}
 		}
-		if (onlyWS) return "";
+
+		if (mark == dot) return "";
+		if (mark > dot && state.commentMarkers.contains(dot + 1)) return "";
+		state.commentMarkers.add(dot + 1);
 
 		StringBuilder sb = new StringBuilder();
 		for (dot++; dot <= mark; dot++) {
-			sb.append(this.state.tokens.get(dot).getText());
+			sb.append(state.tokens.get(dot).getText());
 		}
 		return sb.toString();
 	}

@@ -21,27 +21,30 @@
 // TestWordClass ==========
 package net.certiv.json.test;
 
+import static org.testng.Assert.assertEquals;
+
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import net.certiv.json.IOProcessor;
 import net.certiv.json.converter.Converter;
-import net.certiv.json.parser.JsonToken;
 import net.certiv.json.test.base.TestBase;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import net.certiv.json.util.Log;
 
 public class TestWord extends TestBase {
 
 	private Converter converter;
 
-	@Before
+	@BeforeMethod
 	public void setUp() throws Exception {
+		Log.setTestMode(true);
 		String[] args = { "-s" };
 		IOProcessor processor = new IOProcessor(args);
 		converter = new Converter(processor);
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() throws Exception {
 		converter = null;
 	}
@@ -49,7 +52,7 @@ public class TestWord extends TestBase {
 	@Test
 	public void testLexBold() throws Exception {
 		String source = "This is a *simple* sentence." + EOL;
-		String found = lexSource(source, true, JsonToken.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='This' ]" + EOL
 				+ "[@1   1:4  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:5  Word='is' ]" + EOL
@@ -63,13 +66,13 @@ public class TestWord extends TestBase {
 				+ "[@10  1:19 Word='sentence.' ]" + EOL
 				+ "[@11  1:28 Blankline='rn' ]" + EOL//
 				+ "[@12  2:30 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
 	}
 
 	@Test
 	public void testConvertBold() {
 		String source = "This is a *simple* sentence." + EOL;
-		String result = converter.convert(source);
+		String result = converter.convert("", source);
 		String expecting = "<p>This is a <b>simple</b> sentence.</p>" + EOL;
 		assertEquals(expecting, result);
 	}
@@ -77,7 +80,7 @@ public class TestWord extends TestBase {
 	@Test
 	public void testLexUnderscore() throws Exception {
 		String source = "Test: _underline_ text." + EOL;
-		String found = lexSource(source, true, JsonToken.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='Test:' ]" + EOL
 				+ "[@1   1:5  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:6  Underscore='_' ]" + EOL
@@ -87,13 +90,13 @@ public class TestWord extends TestBase {
 				+ "[@6   1:18 Word='text.' ]" + EOL
 				+ "[@7   1:23 Blankline='rn' ]" + EOL
 				+ "[@8   2:25 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
 	}
 
 	@Test
 	public void testWordPunct() throws Exception {
 		String source = "And, just_a simple-test. Here & now: a *'special'* don't." + EOL;
-		String found = lexSource(source, true, JsonToken.BASIC);
+		String found = lexSource(source, true, true);
 		String expecting = "[@0   1:0  Word='And,' ]" + EOL
 				+ "[@1   1:4  Ws=' ' Hidden]" + EOL
 				+ "[@2   1:5  Word='just_a' ]" + EOL
@@ -117,7 +120,7 @@ public class TestWord extends TestBase {
 				+ "[@20  1:51 Word='don't.' ]" + EOL
 				+ "[@21  1:57 Blankline='rn' ]" + EOL
 				+ "[@22  2:59 Eof='<EOF>' ]" + EOL;
-		assertEquals(expecting, found);
+		assertEquals(found, expecting);
 	}
 }
 

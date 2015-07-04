@@ -28,16 +28,11 @@ package net.certiv.json.converter;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.certiv.json.symbol.Symbol;
-import net.certiv.json.types.StmtType;
-import net.certiv.json.util.Log;
-import net.certiv.json.util.Strings;
-
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.ErrorNodeImpl;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNodeImpl;
+
+import net.certiv.json.symbol.Symbol;
+import net.certiv.json.util.Strings;
 
 public abstract class BaseDescriptor implements IDescriptor {
 
@@ -48,9 +43,10 @@ public abstract class BaseDescriptor implements IDescriptor {
 	public ParserRuleContext ctx;
 
 	// local state data
-	public boolean resolved = false; 	// node resolved?
-	public Value value; 				// the node value
-	public List<String> properties;		// node properties
+	protected StringBuilder sb;
+	public boolean resolved = false; // node resolved?
+	public Value value; // the node value
+	public List<String> properties; // node properties
 
 	// Comment Collection ///////////////////////////
 
@@ -73,7 +69,10 @@ public abstract class BaseDescriptor implements IDescriptor {
 		return state.nodeContextMap.get(ctx);
 	}
 
-	public abstract String content(boolean enter);
+	@Override
+	public String content() {
+		return sb.toString();
+	}
 
 	@Override
 	public void initialize() {
@@ -173,92 +172,6 @@ public abstract class BaseDescriptor implements IDescriptor {
 			this.value = value;
 		} else {
 			value = Value.INVALID;
-		}
-	}
-
-	// Element Association Helpers ////////////////////////////
-	// TODO: depreciate
-
-	public List<ElementAssoc> assocElement; // elements of context
-
-	public class ElementAssoc {
-
-		public StmtType type;
-		public int index;
-		public Token token;
-		public ParseTree tree;
-
-		public ElementAssoc(StmtType type, Token token, ParseTree tree) {
-			super();
-			this.type = type;
-			this.index = token.getTokenIndex();
-			this.token = token;
-			this.tree = tree;
-		}
-	}
-
-	public List<ParseTree> getContextElements(ParserRuleContext ctx) {
-		return ctx.children;
-	}
-
-	public ParseTree firstElement(ParserRuleContext ctx) {
-		return ctx.children.get(0);
-	}
-
-	public ParseTree lastElement(ParserRuleContext ctx) {
-		return ctx.children.get(ctx.children.size() - 1);
-	}
-
-	public ParseTree priorElement(ParserRuleContext ctx, ParseTree node) {
-		buildElementAssociations(ctx);
-		int index = indexOfElement(ctx, node);
-		if (index < 1 || index >= assocElement.size()) return null;
-		return assocElement.get(index - 1).tree;
-	}
-
-	public ParseTree nextElement(ParserRuleContext ctx, ParseTree node) {
-		buildElementAssociations(ctx);
-		int index = indexOfElement(ctx, node);
-		if (index < 0 || index > assocElement.size() - 2) return null;
-		return assocElement.get(index + 1).tree;
-	}
-
-	public ParseTree getElementAt(ParserRuleContext ctx, int index) {
-		buildElementAssociations(ctx);
-		if (index < 0 || index > assocElement.size() - 1) return null;
-		return assocElement.get(index).tree;
-	}
-
-	public int indexOfElement(ParserRuleContext ctx, ParseTree node) {
-		buildElementAssociations(ctx);
-		int index = node.getSourceInterval().a;
-		for (int idx = 0; idx < assocElement.size(); idx++) {
-			ElementAssoc e = assocElement.get(idx);
-			if (e.index == index) {
-				return idx;
-			}
-		}
-		return -1;
-	}
-
-	public void buildElementAssociations(ParserRuleContext ctx) {
-		if (assocElement == null) {
-			assocElement = new ArrayList<>();
-			for (ParseTree node : ctx.children) {
-				if (node instanceof ParserRuleContext) {
-					Token t = ((ParserRuleContext) node).getStart();
-					assocElement.add(new ElementAssoc(StmtType.RULE, t, node));
-				} else if (node instanceof TerminalNodeImpl) {
-					Token t = ((TerminalNodeImpl) node).getSymbol();
-					if (node instanceof ErrorNodeImpl) {
-						assocElement.add(new ElementAssoc(StmtType.ERROR, t, node));
-					} else {
-						assocElement.add(new ElementAssoc(StmtType.TERMINAL, t, node));
-					}
-				} else {
-					Log.warn(this, "Unexpected node type skipped: " + node.getClass().getName());
-				}
-			}
 		}
 	}
 }

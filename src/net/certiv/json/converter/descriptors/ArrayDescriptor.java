@@ -45,19 +45,20 @@ public class ArrayDescriptor extends BaseDescriptor {
 	}
 
 	@Override
-	public String content(boolean enter) {
-		StringBuilder sb = new StringBuilder();
-		if (enter) {
-			sb.append(getLeftComment());
-		} else {
-			sb.append(getRightComment());
-		}
+	public String content() {
 		return sb.toString();
 	}
 
 	@Override
 	public void initialize() {
 		value = Value.TRUE;
+	}
+
+	@Override
+	public Value processOnEntry() {
+		sb = new StringBuilder();
+		sb.append(getLeftComment());
+		return value;
 	}
 
 	@Override
@@ -68,6 +69,11 @@ public class ArrayDescriptor extends BaseDescriptor {
 		return value;
 	}
 
+	@Override
+	public Value processOnExit() {
+		sb.append(getRightComment());
+		return value;
+	}
 	// DescriptorBody ==========
 
 	// AccessMethods ==========

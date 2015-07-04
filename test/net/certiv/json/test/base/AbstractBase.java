@@ -21,8 +21,9 @@
 // AbstractBaseClass ==========
 package net.certiv.json.test.base;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,10 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
-
-import net.certiv.json.parser.JsonToken;
-import net.certiv.json.parser.gen.JsonParser;
-import net.certiv.json.parser.gen.JsonParserBaseListener;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CharStream;
@@ -48,7 +45,10 @@ import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
-import org.junit.Assert;
+
+import net.certiv.json.parser.gen.JsonParser;
+import net.certiv.json.parser.gen.JsonParserBaseListener;
+import net.certiv.json.util.Strings;
 
 public abstract class AbstractBase {
 
@@ -72,24 +72,37 @@ public abstract class AbstractBase {
 		if (!lastTestFailed) eraseTempDir();
 	}
 
-	public String lexSource(String source, boolean output, boolean style) {
-		CommonTokenStream tokens = produceTokens(source);
+	public String lexSource(String source, boolean sysout, boolean hidden) {
+		return lexSource("", source, sysout, hidden);
+	}
+
+	public String lexSource(String name, String source, boolean sysout, boolean hidden) {
+		CommonTokenStream tokens = produceTokens(name, source);
 		tokens.fill();
 		StringBuilder sb = new StringBuilder();
 		for (Token token : tokens.getTokens()) {
-			((JsonToken) token).toStringStyle(style);
-			sb.append(token.toString());
-			if (output) System.out.print(token.toString());
+			if (token.getChannel() == 0 || hidden) {
+				String txt = getTokenString(token);
+				sb.append(txt + EOL);
+				if (sysout) System.out.print("+ \"" + txt.trim() + "\" + EOL" + Strings.eol);
+			}
 		}
 		return sb.toString();
 	}
 
-	public CommonTokenStream produceTokens(String source) {
-		ANTLRInputStream is = new ANTLRInputStream(source);
+	public CommonTokenStream produceTokens(String name, String data) {
+		ANTLRInputStream is = new ANTLRInputStream(data);
+		is.name = name;
 		return createLexerStream(is);
 	}
 
+	public abstract String getBaseDir();
+
+	public abstract String getTestExt();
+
 	public abstract CommonTokenStream createLexerStream(ANTLRInputStream is);
+
+	public abstract String getTokenString(Token token);
 
 	public List<String> getTokenTypes(LexerGrammar lg, ATN atn, CharStream input) {
 		LexerATNSimulator interp = new LexerATNSimulator(atn, new DFA[] { new DFA(
@@ -106,8 +119,7 @@ public abstract class AbstractBase {
 			ttype = interp.match(input, Lexer.DEFAULT_MODE);
 			if (ttype == Token.EOF) {
 				tokenTypes.add("EOF");
-			}
-			else {
+			} else {
 				tokenTypes.add(lg.typeToTokenList.get(ttype));
 			}
 
@@ -131,8 +143,7 @@ public abstract class AbstractBase {
 			if (t != null) {
 				if (t.startsWith(Grammar.AUTO_GENERATED_TOKEN_NAME_PREFIX)) {
 					tokens.add(g.getTokenDisplayName(i));
-				}
-				else {
+				} else {
 					tokens.add(t);
 				}
 			}
@@ -142,14 +153,14 @@ public abstract class AbstractBase {
 		StringTokenizer st = new StringTokenizer(allValidTokensStr, ", ");
 		while (st.hasMoreTokens()) {
 			String tokenName = st.nextToken();
-			assertTrue("token " + tokenName + " expected, but was undefined",
-					g.getTokenType(tokenName) != Token.INVALID_TYPE);
+			assertTrue(g.getTokenType(tokenName) != Token.INVALID_TYPE,
+					"token " + tokenName + " expected, but was undefined");
 			tokens.remove(tokenName);
 		}
 		// make sure there are not any others (other than <EOF> etc...)
 		for (String tokenName : tokens) {
-			assertTrue("unexpected token name " + tokenName,
-					g.getTokenType(tokenName) < Token.MIN_USER_TOKEN_TYPE);
+			assertTrue(g.getTokenType(tokenName) < Token.MIN_USER_TOKEN_TYPE,
+					"unexpected token name " + tokenName);
 		}
 
 		// make sure all expected rules are there
@@ -157,19 +168,10 @@ public abstract class AbstractBase {
 		int n = 0;
 		while (st.hasMoreTokens()) {
 			String ruleName = st.nextToken();
-			assertNotNull("rule " + ruleName + " expected", g.getRule(ruleName));
+			assertNotNull(g.getRule(ruleName, "rule " + ruleName + " expected"));
 			n++;
 		}
-		Assert.assertEquals("number of rules mismatch; expecting " + n + "; found " + g.rules.size(), n, g.rules.size());
-	}
-
-	public void assertEquals(Object expected, Object actual) {
-		try {
-			Assert.assertEquals(expected, actual);
-		} catch (Error e) {
-			lastTestFailed = true;
-			throw e;
-		}
+		assertEquals(n, g.rules.size(), "number of rules mismatch; expecting " + n + "; found " + g.rules.size());
 	}
 
 	protected void mkdir(String dir) {

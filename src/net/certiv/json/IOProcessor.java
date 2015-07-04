@@ -18,44 +18,53 @@
  * 		1.1 - 2014.08.26: Updates, add Tests support
  * // Version ==========
  *******************************************************************************/
-// IOProcessor ==========
+// TestIOProcessor ==========
 package net.certiv.json;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import net.certiv.json.util.Log;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+
+import net.certiv.json.util.Log;
+import net.certiv.json.util.Log.LogLevel;
 
 public class IOProcessor {
 
-	private String[] opts; // pathnames
-	private String source; // processed pathnames
+	private String source; // dir pathnames
 	private String target;
 
-	private boolean FileIn; // flags
-	private boolean FileOut;
-	private boolean StdIO;
-	private boolean TextIn;
-
-	private String srcData; // loaded source data
+	private ArrayList<String> types = new ArrayList<>();
 
 	public IOProcessor(String[] args) {
+		Log.setLevel(this, LogLevel.Debug);
 		if (args.length == 0) {
 			printHelp();
 		}
-		opts = new String[3];
-		opts[0] = opts[1] = opts[2] = "";
+
 		for (int idx = 0; idx < args.length; idx++) {
 
 			switch (args[idx].trim().toLowerCase()) {
-				case "-h":
-					printHelp();
+				case "-i":
+					idx++;
+					source = args[idx];
 					break;
+				case "-o":
+					idx++;
+					target = args[idx];
+					break;
+				case "-l":
+					idx++;
+					Log.defLevel(args[idx].trim());
+					break;
+				case "-t":
+					idx++;
+					types.add(args[idx]);
+					break;
+
+				case "-h":
 				default:
 					printHelp();
 					break;
@@ -63,83 +72,85 @@ public class IOProcessor {
 		}
 	}
 
+	private void printHelp() {
+		String levels = "'debug', 'info', 'warn', 'error', or 'silent' (default: 'warn'";
+		System.out.println("Usage:");
+		System.out.println("java -jar [cli_options]" + System.lineSeparator());
+		System.out.println("-h                print cli help");
+		System.out.println("-i <dir>          root directory for source files");
+		System.out.println("-l <string>       set logging level to string: " + levels);
+		System.out.println("-o <dir>          root directory for output files");
+		System.out.println("-t <types>        types of input files to convert");
+		System.exit(0);
+	}
+
 	public boolean init() {
-		if (!(FileIn || StdIO)) {
-			Log.error(this, "Need to specify a source.");
+		if (source == null) {
+			Log.error(this, "Need to specify a source directory path.");
+			return false;
+		}
+		if (target == null) {
+			Log.error(this, "Need to specify a destination directory path.");
 			return false;
 		}
 
-		if (FileIn) {
-			source = opts[0];
-			File srcFile = new File(source);
-			if (!srcFile.exists()) {
-				Log.error(this, "Source file does not exist (" + source + ")");
-				return false;
-			}
+		File root = new File(source);
+		if (!root.exists()) {
+			Log.error(this, "Source directory does not exist (" + source + ")");
+			return false;
 		}
 
-		if (FileOut) {
-			target = opts[1];
-		} else if (FileIn && !StdIO) {
-			FileOut = true;
-			int idx = source.lastIndexOf('.');
-			target = source.substring(0, idx + 1) + "html";
-		}
-		if (FileOut) {
-			File dstFile = new File(target);
-			if (dstFile.exists()) {
-				dstFile.delete();
-				dstFile = new File(target);
-			}
-		}
+		// TODO: handle clear and force options
+		// root = new File(target);
+		// if (root.exists()) {
+		// root.delete();
+		// }
 
 		return true;
 	}
 
-	public String getSourceName() {
+	public String getSourceDir() {
 		return source;
 	}
 
-	public String loadData() {
-		if (FileIn) {
-			String msg = "Error reading source data from file '" + source + "'";
-			try {
-				srcData = FileUtils.readFileToString(new File(source));
-			} catch (IOException e) {
-				Log.error(this, msg);
-			}
-		} else if (StdIO && !TextIn) {
-			String msg = "Error reading source data from standard in";
-			InputStream in = System.in;
-			try {
-				srcData = IOUtils.toString(System.in);
-			} catch (IOException e) {
-				Log.error(this, msg);
-			} finally {
-				IOUtils.closeQuietly(in);
-			}
-		} else if (TextIn) {
-			StdIO = true;
+	public String getTargetDir() {
+		return target;
+	}
+
+	// TODO: convert based on type
+	public String convertName(String pName) {
+		String name = pName.replaceFirst("Java/src", "Go/src");
+		int dot = name.lastIndexOf("java");
+		name = name.substring(0, dot) + "go";
+		return name;
+	}
+
+	public Collection<File> collectSourceFiles(File root) {
+		String[] checkedTypes = getCheckedTypes();
+		Collection<File> files = FileUtils.listFiles(root, checkedTypes, true);
+		return files;
+	}
+
+	private String[] getCheckedTypes() {
+		int num = types.size();
+		return types.toArray(new String[num]);
+	}
+
+	public String loadData(File source) {
+		String srcData = "";
+		try {
+			srcData = FileUtils.readFileToString(source);
+		} catch (IOException e) {
+			Log.error(this, "Error reading source data from file '" + source + "'");
 		}
 		return srcData;
 	}
 
-	public void storeData(String data) {
-		if (FileOut) {
-			try {
-				FileUtils.writeStringToFile(new File(target), data);
-			} catch (IOException e) {
-				Log.error(this, "Error writing result data to file '" + target + "'", e);
-			}
-		} else if (StdIO) {
-			OutputStream out = System.out;
-			try {
-				IOUtils.write(data, out);
-			} catch (IOException e) {
-				Log.error(this, "Error writing result data to standard out", e);
-			} finally {
-				IOUtils.closeQuietly(out);
-			}
+	public void storeData(String destination, String data) {
+		try {
+			FileUtils.writeStringToFile(new File(destination), data);
+		} catch (IOException e) {
+			Log.error(this, "Error writing result data to file '" + target + "'", e);
 		}
 	}
 
@@ -151,25 +162,5 @@ public class IOProcessor {
 		} catch (IOException e) {}
 		return cwd;
 	}
-
-	@SuppressWarnings("unused")
-	private String readFile(String filename) {
-		File file = new File(filename);
-		String data = null;
-		try {
-			data = FileUtils.readFileToString(file);
-		} catch (IOException e) {
-			Log.error(this, "Error reading file", e);
-		}
-		return data;
-
-	}
-
-	private void printHelp() {
-		System.out.println("Usage:");
-		System.out.println("java -jar [cli_options]" + System.lineSeparator());
-		// etc.
-		System.exit(0);
-	}
 }
-// IOProcessor ==========
+// TestIOProcessor ==========

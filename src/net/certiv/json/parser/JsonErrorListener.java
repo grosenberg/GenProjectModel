@@ -21,18 +21,17 @@
 // ErrorListenerClass ==========
 package net.certiv.json.parser;
 
-import java.util.Collections;
 import java.util.List;
 
-import net.certiv.json.parser.gen.JsonLexer;
-import net.certiv.json.util.Log;
-
 import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+
+import net.certiv.json.parser.gen.JsonLexer;
+import net.certiv.json.util.Log;
 
 public class JsonErrorListener extends BaseErrorListener {
 
@@ -44,7 +43,8 @@ public class JsonErrorListener extends BaseErrorListener {
 
 		Parser parser = (Parser) recognizer;
 		String name = parser.getSourceName();
-		TokenStream tokens = parser.getInputStream();
+		CommonTokenStream tokens = (CommonTokenStream) parser.getInputStream();
+		tokens.fill();
 
 		Token offSymbol = (Token) offendingSymbol;
 		int thisError = offSymbol.getTokenIndex();
@@ -52,22 +52,26 @@ public class JsonErrorListener extends BaseErrorListener {
 			Log.debug(this, name + ": Incorrect error: " + msg);
 			return;
 		}
+
 		String offSymName = JsonLexer.VOCABULARY.getSymbolicName(offSymbol.getType());
+		List<String> stack = parser.getRuleInvocationStack();
+		// Collections.reverse(stack);
+
+		Log.error(this, name);
+		Log.error(this, "Rule stack: " + stack);
+		Log.error(this, "At line " + line + ":" + charPositionInLine + " at " + offSymName + ": " + msg);
+		Log.error(this, "Expecting: " + parser.getExpectedTokens().toString(JsonLexer.VOCABULARY));
+
 		if (thisError > lastError + 10) {
 			lastError = thisError - 10;
 		}
-		for (int idx = lastError + 1; idx <= thisError; idx++) {
+		int leadError = thisError + 10 < tokens.size() ? thisError + 10 : tokens.size() - thisError;
+
+		for (int idx = lastError + 1; idx < leadError; idx++) {
 			Token token = tokens.get(idx);
-			if (token.getChannel() != Token.HIDDEN_CHANNEL)
-				Log.error(this, name + ":" + token.toString());
+			if (token.getChannel() != Token.HIDDEN_CHANNEL) Log.error(this, token.toString());
 		}
 		lastError = thisError;
-
-		List<String> stack = parser.getRuleInvocationStack();
-		Collections.reverse(stack);
-
-		Log.error(this, name + " rule stack: " + stack);
-		Log.error(this, name + " line " + line + ":" + charPositionInLine + " at " + offSymName + ": " + msg);
 	}
 }
 // ErrorListenerClass ==========

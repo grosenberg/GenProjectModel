@@ -25,6 +25,8 @@ public interface IDescriptor {
 
 	public void initialize();
 
+	public String content();
+
 	public Value processOnEntry();
 
 	public Value processOnExit();

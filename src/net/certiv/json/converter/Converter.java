@@ -46,13 +46,13 @@ public class Converter {
 		this.processor = processor;
 	}
 
-	public String convert(String srcData) {
-		return convert(srcData, new PhaseState());
+	public String convert(String srcName, String srcData) {
+		return convert(srcName, srcData, new PhaseState());
 	}
 
-	public String convert(String srcData, PhaseState state) {
+	public String convert(String srcName, String srcData, PhaseState state) {
 		try {
-			JsonContext tree = parse(srcData, state);
+			JsonContext tree = parse(srcName, srcData, state);
 			ParseTreeWalker walker = new ParseTreeWalker();
 			JsonPhase01 phase01 = processPhase01(tree, walker, state);
 			JsonPhase02 phase02 = processPhase02(tree, walker, phase01);
@@ -65,11 +65,11 @@ public class Converter {
 		}
 	}
 
-	private JsonContext parse(String srcData, PhaseState state) throws IOException {
+	private JsonContext parse(String srcName, String srcData, PhaseState state) throws IOException {
 		lastError = "Failure in acquiring input stream.";
 		ByteArrayInputStream is = new ByteArrayInputStream(srcData.getBytes());
 		ANTLRInputStream input = new ANTLRInputStream(is);
-		input.name = processor.getSourceName();
+		input.name = srcName;
 
 		lastError = "Failure in generating lexer token stream.";
 		JsonLexer lexer = new JsonLexer(input);
@@ -88,7 +88,7 @@ public class Converter {
 
 	}
 
-	private JsonPhase01 processPhase01(JsonContext tree, ParseTreeWalker walker, PhaseState state) {
+	public JsonPhase01 processPhase01(JsonContext tree, ParseTreeWalker walker, PhaseState state) {
 		lastError = "Failure in parse phase 1.";
 		JsonPhase01 phase01 = new JsonPhase01(state, processor);
 		phase01.collectComments(true);
@@ -96,7 +96,7 @@ public class Converter {
 		return phase01;
 	}
 
-	private JsonPhase02 processPhase02(JsonContext tree, ParseTreeWalker walker, JsonPhase01 phase01) {
+	public JsonPhase02 processPhase02(JsonContext tree, ParseTreeWalker walker, JsonPhase01 phase01) {
 		lastError = "Failure in parse phase 2.";
 		JsonPhase02 phase02 = new JsonPhase02(phase01, processor);
 		walker.walk(phase02, tree);
@@ -106,7 +106,7 @@ public class Converter {
 		return phase02;
 	}
 
-	private JsonPhase03 processPhase03(JsonContext tree, ParseTreeWalker walker, JsonPhase02 phase02) {
+	public JsonPhase03 processPhase03(JsonContext tree, ParseTreeWalker walker, JsonPhase02 phase02) {
 		lastError = "Failure in parse phase 3.";
 		JsonPhase03 phase03 = new JsonPhase03(phase02, processor);
 		walker.walk(phase03, tree);

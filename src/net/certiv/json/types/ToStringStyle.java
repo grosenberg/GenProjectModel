@@ -18,16 +18,13 @@
  * 		1.1 - 2014.08.26: Updates, add Tests support
  * // Version ==========
  *******************************************************************************/
-// LexerAdaptorClass ==========
-package net.certiv.json.parser;
+// ToStringStyleClass ==========
+package net.certiv.json.types;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Lexer;
-
-public abstract class LexerAdaptor extends Lexer {
-
-	public LexerAdaptor(CharStream input) {
-		super(input);
-	}
-
+public enum ToStringStyle {
+	MIN,
+	BASIC,
+	FULL;
 }
+
+// ToStringStyleClass ==========

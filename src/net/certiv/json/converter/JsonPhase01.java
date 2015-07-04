@@ -42,7 +42,8 @@ public class JsonPhase01 extends JsonPhaseBase {
 	 * -- create typed descriptor objects for context instances <br>
 	 * -- if enabled, examine and collect comments from hidden-channel <br>
 	 * -- initialize descriptors <br>
-	 * -- where the descriptor is contextually complete, mark the descriptor 'resolved' <br>
+	 * -- where the descriptor is contextually complete, mark the descriptor 'resolved'
+	 * <br>
 	 * 
 	 * @param processor
 	 */
