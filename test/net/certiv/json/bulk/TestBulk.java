@@ -18,7 +18,7 @@
  * 		1.1 - 2014.08.26: Updates, add Tests support
  * // Version ==========
  *******************************************************************************/
-//TestBulkClass ==========
+// TestBulkClass ==========
 package net.certiv.json.bulk;
 
 import java.io.File;
